@@ -131,14 +131,18 @@ select id, attempts, last_error from webhook_events where status in ('failed','d
   $$);
   ```
 
-## 7. Staff inbox (read-only)
+## 7. Staff inbox
 
-`https://wa.poshnee.com/inbox` lists conversations, newest first, and shows each
-thread with delivery ticks. It refreshes every 5 seconds. Replying from the inbox
-comes in a later phase.
+`https://wa.poshnee.com/inbox` (the site root redirects there) has:
+- A conversation list, newest first, with unread counts and search by name or number.
+- Threads with day separators, delivery ticks (sent, delivered, read, failed) and an "Auto-reply" tag on bot messages.
+- A reply box (Enter sends, Shift+Enter adds a new line). It only appears while the 24-hour reply window is open, and the header shows how much time is left.
+- **Bot handover:** a staff reply pauses the bot for that customer. The "Bot paused / Bot on" button switches it back.
+- Automatic refresh every 5 seconds.
 
+Setup:
 - Set `INBOX_PASSWORD` (shared staff password) and `INBOX_SESSION_SECRET` in Vercel. A login lasts 7 days; changing `INBOX_SESSION_SECRET` logs everyone out.
-- Existing projects: run [`supabase/migrations/002_inbox.sql`](supabase/migrations/002_inbox.sql) once in the SQL Editor. New projects get it from `schema.sql`.
+- Existing databases: run [`supabase/migrations/003_inbox_v2.sql`](supabase/migrations/003_inbox_v2.sql) once in the SQL Editor (it supersedes 002). New projects get everything from `schema.sql`. `/api/health` reports `schemaUpToDate`.
 - Media shows as a label (Photo, Document…) with its caption until media download is built.
 
 ## 8. Monitoring (free)
@@ -170,7 +174,9 @@ each version for about 2 years. To upgrade:
 src/app/api/webhook/route.ts     GET verification, POST signature check + store + ack
 src/app/api/cron/retry/route.ts  retry/replay endpoint
 src/app/api/health/route.ts      health check
-src/app/inbox/page.tsx           staff inbox (read-only), login at src/app/login
+src/app/inbox/                   staff inbox (page, reply box, loading/error states)
+src/app/login/page.tsx           staff sign-in
+src/app/actions.ts               sign in/out, send reply, bot pause
 src/lib/session.ts               signed login cookie
 src/lib/process.ts               event processing, dedupe, statuses, auto-reply
 src/lib/replies.ts               reply rules (the replaceable reply engine)

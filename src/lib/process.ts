@@ -1,5 +1,6 @@
 import { db, type WebhookEventRow } from "./db";
 import { env } from "./env";
+import { isBotPaused, SERVICE_WINDOW_MS } from "./inbox";
 import { decideReply } from "./replies";
 import {
   sendText,
@@ -10,8 +11,6 @@ import {
 } from "./whatsapp";
 
 const MAX_ATTEMPTS = 5;
-// Free-form replies are only allowed inside Meta's 24h customer-service window.
-const SERVICE_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** Process a freshly stored event, unless someone else already claimed it. */
 export async function processEventById(id: number): Promise<void> {
@@ -109,7 +108,8 @@ async function handleIncomingMessage(message: WaMessage, phoneNumberId: string |
   if (Date.now() - Number(message.timestamp) * 1000 > SERVICE_WINDOW_MS) return;
 
   const reply = decideReply(message);
-  if (reply) await sendAutoReply(message, reply);
+  // Staff have taken over this conversation: the bot stays quiet.
+  if (reply && !(await isBotPaused(message.from))) await sendAutoReply(message, reply);
 }
 
 /**
@@ -136,10 +136,16 @@ async function sendAutoReply(message: WaMessage, text: string): Promise<void> {
   }
 
   await db().from("messages").update({ auto_reply_state: "sent" }).eq("wa_message_id", message.id);
-  await recordOutbound(sent.id, message.from, text, sent.response);
+  await recordOutbound(sent.id, message.from, text, sent.response, "bot");
 }
 
-async function recordOutbound(waMessageId: string, to: string, body: string, response: unknown): Promise<void> {
+export async function recordOutbound(
+  waMessageId: string,
+  to: string,
+  body: string,
+  response: unknown,
+  sentBy: "bot" | "staff",
+): Promise<void> {
   const { error } = await db()
     .from("messages")
     .upsert(
@@ -151,6 +157,7 @@ async function recordOutbound(waMessageId: string, to: string, body: string, res
         type: "text",
         body,
         payload: response,
+        sent_by: sentBy,
         status: "accepted",
         wa_timestamp: new Date().toISOString(),
       },
