@@ -30,6 +30,12 @@ export const env = {
   get cronSecret() {
     return required("CRON_SECRET");
   },
+  get inboxPassword() {
+    return required("INBOX_PASSWORD");
+  },
+  get inboxSessionSecret() {
+    return required("INBOX_SESSION_SECRET");
+  },
   get autoReplyPing() {
     return process.env.AUTO_REPLY_PING === "true";
   },

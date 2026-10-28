@@ -131,7 +131,17 @@ select id, attempts, last_error from webhook_events where status in ('failed','d
   $$);
   ```
 
-## 7. Monitoring (free)
+## 7. Staff inbox (read-only)
+
+`https://wa.poshnee.com/inbox` lists conversations, newest first, and shows each
+thread with delivery ticks. It refreshes every 5 seconds. Replying from the inbox
+comes in a later phase.
+
+- Set `INBOX_PASSWORD` (shared staff password) and `INBOX_SESSION_SECRET` in Vercel. A login lasts 7 days; changing `INBOX_SESSION_SECRET` logs everyone out.
+- Existing projects: run [`supabase/migrations/002_inbox.sql`](supabase/migrations/002_inbox.sql) once in the SQL Editor. New projects get it from `schema.sql`.
+- Media shows as a label (Photo, Document…) with its caption until media download is built.
+
+## 8. Monitoring (free)
 
 Point an uptime monitor (for example UptimeRobot) at `https://wa.poshnee.com/api/health`.
 - It returns 503 when the database is unreachable.
@@ -140,7 +150,7 @@ Point an uptime monitor (for example UptimeRobot) at `https://wa.poshnee.com/api
 
 Function logs are under Vercel → **Logs**. Logs never include message content.
 
-## 8. Upgrading the Graph API version
+## 9. Upgrading the Graph API version
 
 The version is pinned in `WA_GRAPH_API_VERSION` (currently `v25.0`). Meta supports
 each version for about 2 years. To upgrade:
@@ -160,6 +170,8 @@ each version for about 2 years. To upgrade:
 src/app/api/webhook/route.ts     GET verification, POST signature check + store + ack
 src/app/api/cron/retry/route.ts  retry/replay endpoint
 src/app/api/health/route.ts      health check
+src/app/inbox/page.tsx           staff inbox (read-only), login at src/app/login
+src/lib/session.ts               signed login cookie
 src/lib/process.ts               event processing, dedupe, statuses, auto-reply
 src/lib/replies.ts               reply rules (the replaceable reply engine)
 src/lib/whatsapp.ts              payload types + Cloud API send
