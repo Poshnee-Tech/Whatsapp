@@ -108,7 +108,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                   <span className="conversation-row">
                     <span className="preview">
                       {c.last_direction === "out" && <StatusIcon status={c.last_status} />}
-                      {c.last_body ?? typeLabel(c.last_type) ?? ""}
+                      <span className="preview-text">{c.last_body ?? typeLabel(c.last_type) ?? ""}</span>
                     </span>
                     {unread > 0 && <span className="badge">{unread > 99 ? "99+" : unread}</span>}
                   </span>
@@ -237,10 +237,12 @@ function Avatar({ waId, name }: { waId: string; name: string | null }) {
   const initials = name
     ? name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("")
     : waId.slice(-2);
+  // Similar numbers (…101, …102) should still get clearly different colours.
   let hash = 0;
-  for (const ch of waId) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
+  for (const ch of waId) hash = (Math.imul(hash, 31) + ch.charCodeAt(0)) >>> 0;
+  const hue = (Math.imul(hash, 2654435761) >>> 0) % 360;
   return (
-    <span className="avatar" style={{ "--hue": hash } as CSSProperties} aria-hidden>
+    <span className="avatar" style={{ "--hue": hue } as CSSProperties} aria-hidden>
       {initials}
     </span>
   );

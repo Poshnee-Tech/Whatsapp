@@ -194,11 +194,8 @@ button, input, textarea { font: inherit; color: inherit; }
 .inbox {
   height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(300px, 400px) 1fr;
-  max-width: 1600px;
-  margin: 0 auto;
+  grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 /* Sidebar ---------------------------------------------------------------- */
@@ -207,6 +204,7 @@ button, input, textarea { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
   border-right: 1px solid var(--border);
 }
 
@@ -255,7 +253,13 @@ button, input, textarea { font: inherit; color: inherit; }
 .banner.error { color: var(--danger); background: var(--danger-soft); }
 .banner .icon { font-size: 16px; margin-top: 1px; }
 
-.conversation-list { flex: 1; overflow-y: auto; }
+.conversation-list { flex: 1; overflow-x: hidden; overflow-y: auto; }
+
+/* Scrollable areas still scroll (wheel, trackpad, touch), without a visible bar. */
+.conversation-list, .messages, .composer textarea { scrollbar-width: none; }
+.conversation-list::-webkit-scrollbar,
+.messages::-webkit-scrollbar,
+.composer textarea::-webkit-scrollbar { display: none; }
 
 .list-empty {
   padding: 40px 24px;
@@ -291,6 +295,7 @@ button, input, textarea { font: inherit; color: inherit; }
   flex: 1;
   min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 3px;
 }
 
@@ -301,7 +306,8 @@ button, input, textarea { font: inherit; color: inherit; }
   gap: 8px;
 }
 
-.name, .preview {
+.name, .preview-text {
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -313,6 +319,7 @@ button, input, textarea { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
   font-size: 14px;
   color: var(--muted);
 }
@@ -565,7 +572,7 @@ button, input, textarea { font: inherit; color: inherit; }
 /* Phones: one pane at a time --------------------------------------------- */
 
 @media (max-width: 760px) {
-  .inbox { grid-template-columns: 1fr; box-shadow: none; }
+  .inbox { grid-template-columns: minmax(0, 1fr); }
   .sidebar { border-right: 0; }
   .inbox.has-selection .sidebar { display: none; }
   .inbox:not(.has-selection) .thread { display: none; }

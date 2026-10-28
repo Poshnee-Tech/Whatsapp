@@ -1,18 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { sendReply, type ReplyState } from "@/app/actions";
 import { SendIcon } from "./icons";
 
 /** Reply box. Enter sends, Shift+Enter adds a new line. */
 export function Composer({ waId }: { waId: string }) {
   const [state, action, pending] = useActionState<ReplyState, FormData>(sendReply, {});
+  // Controlled, so a failed send keeps the text instead of the form resetting it.
+  const [text, setText] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (state.sentAt) {
-      formRef.current?.reset();
+      setText("");
       inputRef.current?.focus();
     }
   }, [state.sentAt]);
@@ -33,15 +35,17 @@ export function Composer({ waId }: { waId: string }) {
           maxLength={4096}
           placeholder="Type a reply"
           aria-label="Reply"
-          disabled={pending}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          readOnly={pending}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
-              formRef.current?.requestSubmit();
+              if (!pending && text.trim()) formRef.current?.requestSubmit();
             }
           }}
         />
-        <button type="submit" className="send-button" disabled={pending} aria-label="Send">
+        <button type="submit" className="send-button" disabled={pending || !text.trim()} aria-label="Send">
           {pending ? <span className="spinner" /> : <SendIcon />}
         </button>
       </div>
