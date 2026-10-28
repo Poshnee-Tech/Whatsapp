@@ -11,7 +11,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:webhook": "node scripts/send-test-webhook.mjs"
+    "test:webhook": "node scripts/send-test-webhook.mjs",
+    "demo:seed": "node --env-file=.env.local scripts/demo-data.mjs seed",
+    "demo:clean": "node --env-file=.env.local scripts/demo-data.mjs clean"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",

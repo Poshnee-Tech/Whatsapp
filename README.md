@@ -144,6 +144,7 @@ Setup:
 - Set `INBOX_PASSWORD` (shared staff password) and `INBOX_SESSION_SECRET` in Vercel. A login lasts 7 days; changing `INBOX_SESSION_SECRET` logs everyone out.
 - Existing databases: run [`supabase/migrations/003_inbox_v2.sql`](supabase/migrations/003_inbox_v2.sql) once in the SQL Editor (it supersedes 002). New projects get everything from `schema.sql`. `/api/health` reports `schemaUpToDate`.
 - Media shows as a label (Photo, Document…) with its caption until media download is built.
+- **Demo data:** `npm run demo:seed` adds 6 sample conversations (fictional +44 7700 900xxx numbers) for showing the inbox. `npm run demo:clean` removes them. Run the clean command before going live.
 
 ## 8. Monitoring (free)
 
